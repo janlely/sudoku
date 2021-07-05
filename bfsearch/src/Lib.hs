@@ -3,7 +3,7 @@ module Lib where
 import Data.Matrix
 import Data.List
 import Data.Maybe
-import Debug.Trace
+import qualified Debug.Trace as T
 
 
 readPuzzles :: Matrix Int -> IO (Matrix Int)
@@ -16,7 +16,9 @@ bfsearch :: Matrix Int -> [(Int, Int)] -> Maybe (Matrix Int)
 bfsearch mtx blanks =
     case blanks of
       [] -> Just mtx
-      (x,y):xys -> fromJust $ find isJust $ map func (findValidElem mtx x y)
+      (x,y):xys -> case find isJust $ map func (findValidElem mtx x y) of
+                     Nothing -> Nothing
+                     Just a -> a
           where func num = let newMtx = setElem num (x,y) mtx
                             in if not $ isValid newMtx
                                   then Nothing
