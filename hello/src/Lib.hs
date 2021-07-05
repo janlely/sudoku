@@ -1,8 +1,7 @@
 module Lib where
 
-import Data.Matrix;
-import Data.List;
-import Data.List.Split;
+import Data.Matrix
+import Data.List
 
 solveSudoku :: Matrix Int ->  Matrix Int
 -- solveSudoku = trialAndError . applyRule2 . applyRule1
@@ -19,7 +18,7 @@ readPuzzles m = do
              in readPuzzles m' 
 
 parseInput :: String -> [Int] 
-parseInput input = read `fmap` (splitOn " " input) 
+parseInput = fmap read  . words 
 
 applyRule1 :: Matrix Int -> Matrix Int
 applyRule1 m =
