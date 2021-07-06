@@ -3,6 +3,7 @@ module Main where
 import Lib
 import Data.Matrix
 import Data.Maybe
+import Control.Monad.State
 
 main :: IO ()
 main = do
@@ -10,7 +11,10 @@ main = do
     print "question: "
     print m
     print "answer: "
-    print $ fromJust $  bfsearch m (getBlanks m)
+    let blanks = getBlanks m
+        nums = findValidElem m blanks
+    print $ fromJust $  bfsearch m blanks nums
+    print $ (runState (bfsearchState m blanks nums) 0)
     -- print $ isValid m
 
 

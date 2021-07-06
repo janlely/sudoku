@@ -33,6 +33,7 @@ library
   build-depends:
       base >=4.7 && <5
     , matrix
+    , mtl
   default-language: Haskell2010
 
 executable bfsearch-exe
@@ -46,6 +47,7 @@ executable bfsearch-exe
       base >=4.7 && <5
     , bfsearch
     , matrix
+    , mtl
   default-language: Haskell2010
 
 test-suite bfsearch-test
@@ -60,4 +62,5 @@ test-suite bfsearch-test
       base >=4.7 && <5
     , bfsearch
     , matrix
+    , mtl
   default-language: Haskell2010

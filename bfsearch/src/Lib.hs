@@ -3,27 +3,44 @@ module Lib where
 import Data.Matrix
 import Data.List
 import Data.Maybe
+import Control.Monad.State
 import qualified Debug.Trace as T
 
+bfsearchState :: Matrix Int -> [(Int, Int)] -> [Int] -> State Int (Maybe (Matrix Int))
+bfsearchState mtx blanks nums = do
+    cur <- get
+    put (cur + 1)
+    case blanks of
+      [] -> return $ Just mtx
+      (x,y):xys -> case nums of
+                     [] -> return Nothing 
+                     n:ns -> let newMtx = setElem n (x,y) mtx
+                              in if isValid newMtx
+                                    then liftM2 maybeOr (bfsearchState newMtx xys (findValidElem newMtx xys)) (bfsearchState mtx blanks ns) 
+                                    else bfsearchState mtx blanks ns
 
-bfsearch :: Matrix Int -> [(Int, Int)] -> Maybe (Matrix Int)
-bfsearch mtx blanks =
+maybeOr :: Maybe a -> Maybe a -> Maybe a
+maybeOr Nothing a = a
+maybeOr (Just a) _ = Just a
+
+bfsearch :: Matrix Int -> [(Int, Int)] -> [Int] -> Maybe (Matrix Int)
+bfsearch mtx blanks nums =
     case blanks of
       [] -> Just mtx
-      (x,y):xys -> case find isJust $ map func (findValidElem mtx x y) of
-                     Nothing -> Nothing
-                     Just a -> a
-          where func num = let newMtx = setElem num (x,y) mtx
-                            in if not $ isValid newMtx
-                                  then Nothing
-                                  else bfsearch newMtx xys
+      (x,y):xys -> case nums of
+                     [] -> Nothing
+                     n:ns -> let newMtx = setElem n (x,y) mtx
+                              in if isValid newMtx
+                                    then maybeOr (bfsearch newMtx xys (findValidElem newMtx xys)) (bfsearch mtx blanks ns)
+                                    else bfsearch mtx blanks ns
           
 getBlanks :: Matrix Int -> [(Int, Int)]
 getBlanks m = filter isZero [(x,y) | x <- [1..9], y <- [1..9]]
     where isZero (x,y) = getElem x y m == 0
 
-findValidElem :: Matrix Int -> Int -> Int -> [Int]
-findValidElem mtx x y =
+findValidElem :: Matrix Int -> [(Int, Int)] -> [Int]
+findValidElem _ [] = []
+findValidElem mtx ((x,y):_) =
     let grids = [(m + (3 * ((x-1) `div` 3)), n + (3 * ((y-1) `div` 3))) | m <- [1..3], n <- [1..3]] 
         xs = [(x, n) | n <- [1..9]]
         ys = [(m, y) | m <- [1..9]]
