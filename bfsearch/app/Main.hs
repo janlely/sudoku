@@ -13,3 +13,9 @@ main = do
     print $ fromJust $  bfsearch m (getBlanks m)
     -- print $ isValid m
 
+
+readPuzzles :: Matrix Int -> IO (Matrix Int)
+readPuzzles m = do
+    contents <- getContents
+    let thress = map (map read . words) $ lines contents
+    return $ foldl (\m (x:y:v:_) -> setElem v (x,y) m) m thress
