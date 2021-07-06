@@ -1,25 +1,24 @@
 module Main where
 
 import Lib
-import Data.Matrix
-import Data.Maybe
-import Control.Monad.State
+import Graphics.Gloss
+
+window :: Display
+window = InWindow "Nice Window" (200, 200) (10, 10)
+
+background :: Color
+background = white
+
+gridPoints :: Path
+gridPoints = [(10 + x * 20, 10 + y * 20) | x <- [0..9], [0..9]]
+
+drawing :: Picture
+drawing = polygon gridPoints
 
 main :: IO ()
-main = do
-    m <- readPuzzles $ zero 9 9 
-    print "question: "
-    print m
-    print "answer: "
-    let blanks = getBlanks m
-        nums = findValidElem m blanks
-    print $ fromJust $  bfsearch m blanks nums
-    print $ (runState (bfsearchState m blanks nums) 0)
-    -- print $ isValid m
+main = display window background drawing
+
+-- main :: IO ()
+-- main = solveSudoku
 
 
-readPuzzles :: Matrix Int -> IO (Matrix Int)
-readPuzzles m = do
-    contents <- getContents
-    let thress = map (map read . words) $ lines contents
-    return $ foldl (\m (x:y:v:_) -> setElem v (x,y) m) m thress

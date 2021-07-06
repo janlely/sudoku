@@ -1,10 +1,49 @@
 module Lib where
 
-import Data.Matrix
+import Data.Matrix(Matrix, getElem, setElem, zero)
 import Data.List
 import Data.Maybe
+import Control.Applicative
 import Control.Monad.State
+import Control.Monad.Writer
 import qualified Debug.Trace as T
+
+solveSudoku :: IO ()
+solveSudoku = do
+    m <- readPuzzles $ zero 9 9
+    print "question: "
+    print m
+    print "answer: "
+    let blanks = getBlanks m
+        nums = findValidElem m blanks
+        (res, his) = runWriter $ bfsearchWriter m blanks nums
+        -- (res2, count) = runState (bfsearchState m blanks nums) 0
+    print res
+    print "steps: "
+    print $ length his
+    -- print "count: "
+    -- print count
+    -- print $ fromJust $  bfsearch m blanks nums
+    -- print $ (runState (bfsearchState m blanks nums) 0)
+    -- print $ isValid m
+
+readPuzzles :: Matrix Int -> IO (Matrix Int)
+readPuzzles m = do
+    contents <- getContents
+    let thress = map (map read . words) $ lines contents
+    return $ foldl (\m (x:y:v:_) -> setElem v (x,y) m) m thress
+
+bfsearchWriter :: Matrix Int -> [(Int, Int)] -> [Int] -> Writer [Matrix Int] (Maybe (Matrix Int))
+bfsearchWriter mtx blanks nums = do
+    case blanks of
+      [] -> return $ Just mtx
+      (x,y):xys -> case nums of
+                     [] -> return Nothing 
+                     n:ns -> let newMtx = setElem n (x,y) mtx
+                              in if isValid newMtx
+                                    then tell [newMtx] >> liftM2 (<|>) (bfsearchWriter newMtx xys (findValidElem newMtx xys)) (bfsearchWriter mtx blanks ns)
+                                    else bfsearchWriter mtx blanks ns
+
 
 bfsearchState :: Matrix Int -> [(Int, Int)] -> [Int] -> State Int (Maybe (Matrix Int))
 bfsearchState mtx blanks nums = do
@@ -16,7 +55,7 @@ bfsearchState mtx blanks nums = do
                      [] -> return Nothing 
                      n:ns -> let newMtx = setElem n (x,y) mtx
                               in if isValid newMtx
-                                    then liftM2 maybeOr (bfsearchState newMtx xys (findValidElem newMtx xys)) (bfsearchState mtx blanks ns) 
+                                    then liftM2 (<|>) (bfsearchState newMtx xys (findValidElem newMtx xys)) (bfsearchState mtx blanks ns)
                                     else bfsearchState mtx blanks ns
 
 maybeOr :: Maybe a -> Maybe a -> Maybe a
@@ -31,7 +70,7 @@ bfsearch mtx blanks nums =
                      [] -> Nothing
                      n:ns -> let newMtx = setElem n (x,y) mtx
                               in if isValid newMtx
-                                    then maybeOr (bfsearch newMtx xys (findValidElem newMtx xys)) (bfsearch mtx blanks ns)
+                                    then bfsearch newMtx xys (findValidElem newMtx xys) <|> bfsearch mtx blanks ns
                                     else bfsearch mtx blanks ns
           
 getBlanks :: Matrix Int -> [(Int, Int)]
